@@ -33,12 +33,27 @@ function extractPosts() {
     return matches ? parseInt(matches[0]) : 0;
   }
 
+  // Helper function to download an image
+  function downloadImage(url, filename) {
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const a = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(console.error);
+  }
+
   // Main extraction logic
   function extractPostData() {
     const posts = [];
     const postElements = document.querySelectorAll(".feed-shared-update-v2");
 
-    postElements.forEach((post) => {
+    postElements.forEach((post, index) => {
       // Check if it's a repost by looking for repost indicators
       const isRepost =
         post.querySelector(".feed-shared-actor__description") || // Checks for "reposted" text
@@ -82,6 +97,23 @@ function extractPosts() {
         ? extractNumber(impressionsElement.textContent)
         : 0;
 
+      // Extract image URLs
+      //const imageElements = post.querySelectorAll("img");
+      //const imageUrls = Array.from(imageElements).map(img => img.src);
+      //extract only post images
+      const imageElements = post.querySelectorAll(".update-components-image__container .ivm-image-view-model .ivm-view-attr__img-wrapper img");
+      const imageUrls = Array.from(imageElements).map((img) => img.src);
+
+      // Download images
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+
+      imageUrls.forEach((url, imgIndex) => {
+        const filename = `${year}/${month}/post_${index + 1}_img_${imgIndex + 1}.jpg`;
+        downloadImage(url, filename);
+      });
+
       // Only add if there's actual content
       if (textContent) {
         posts.push({
@@ -89,6 +121,7 @@ function extractPosts() {
           reactions: reactions,
           comments: comments,
           impressions: impressions,
+          images: imageUrls,
         });
       }
     });
