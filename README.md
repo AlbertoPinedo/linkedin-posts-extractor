@@ -30,6 +30,9 @@ The extracted data includes the following fields:
 - `reactions`: The number of reactions to the post.
 - `comments`: The number of comments on the post.
 - `impressions`: The number of impressions (views) on the post.
+- `images': The images included in each post
+- `datePost`: Date of the post
+- `url`: Url of each post
 
 The script will skip any posts that are reposts or have a small text content. (under 100 characters)
 
