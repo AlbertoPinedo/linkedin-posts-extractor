@@ -8,6 +8,11 @@ This is a Chrome extension that extracts posts from your LinkedIn feed and saves
 2. Open Chrome and go to `chrome://extensions`.
 3. Enable Developer Mode by clicking the toggle switch in the top right corner.
 4. Click "Load Unpacked" and select the folder where you cloned the repository.
+5. Look for the identifier used with the Chrome inspect functionality
+![alt text](image.png)
+
+6. Change in the code with yours
+![alt text](image-1.png)
 
 ## Usage
 

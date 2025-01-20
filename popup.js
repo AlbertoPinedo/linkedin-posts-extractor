@@ -33,6 +33,37 @@ function extractPosts() {
     return matches ? parseInt(matches[0]) : 0;
   }
 
+  function getPostId(linkedinURL) {
+    const regex = /([0-9]{19})/;
+    return linkedinURL.match(regex)?.[0];
+  }
+
+  function extractUnixTimestamp(postId) {
+    return parseInt(BigInt(postId).toString(2).slice(0, 41), 2);
+  }
+
+  function formatDate(date) {
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const weekday = weekdays[date.getDay()];
+    return `${weekday}, ${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} @ ${date.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}`;
+  }
+
+  function unixTimestampToHumanDate(timestamp) {
+    const dateObject = new Date(timestamp);
+    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return `${formatDate(dateObject)}<br />${localTimezone} (GMT${dateObject.getTimezoneOffset() > 0 ? '-' : '+'}${Math.abs(dateObject.getTimezoneOffset() / 60)})`;
+  }
+
+  function getDate(linkedinURL) {
+    const postId = getPostId(linkedinURL);
+    const unixTimestamp = extractUnixTimestamp(postId);
+    return unixTimestampToHumanDate(unixTimestamp);
+  }
+
+  function extractDate(linkedInUrl) {
+    return getDate(linkedInUrl);
+  }
+
   // Helper function to download an image
   function downloadImage(url, filename) {
     fetch(url)
@@ -51,7 +82,8 @@ function extractPosts() {
   // Main extraction logic
   function extractPostData() {
     const posts = [];
-    const postElements = document.querySelectorAll(".feed-shared-update-v2");
+    const postElements = document.querySelectorAll(".JCniPHMkzeWTJVYtYcBxPACGcXOBjlBoflxc"); // change this identifier for yours
+    
 
     postElements.forEach((post, index) => {
       // Check if it's a repost by looking for repost indicators
@@ -67,9 +99,12 @@ function extractPosts() {
       }
 
       // Extract post text with preserved line breaks
-      const textContent = getTextContent(
+      const postContent = getTextContent(
         post.querySelector(".tvm-parent-container"),
       );
+
+      // Remove all occurrences of the word "hashtag"
+      textContent = postContent.replace(/\bhashtag\b/gi, "");
 
       // ignore posts with no text or small text
       if (textContent.length < 100) {
@@ -96,6 +131,18 @@ function extractPosts() {
       const impressions = impressionsElement
         ? extractNumber(impressionsElement.textContent)
         : 0;
+      
+      
+      
+      // Extract post URL
+      const regex = /"urn:li:activity:[^"]*"/g;
+      const match = post.innerHTML.match(regex);  
+      const dataUrn = match ? match[0].replace(/"/g, "") : "";
+      postUrl = dataUrn ? `https://www.linkedin.com/feed/update/${dataUrn}` : "";
+
+      // Extract post Date
+      const postDate = extractDate(postUrl);
+
 
       // Extract image URLs
       //const imageElements = post.querySelectorAll("img");
@@ -114,6 +161,7 @@ function extractPosts() {
         downloadImage(url, filename);
       });
 
+      
       // Only add if there's actual content
       if (textContent) {
         posts.push({
@@ -122,6 +170,8 @@ function extractPosts() {
           comments: comments,
           impressions: impressions,
           images: imageUrls,
+          datePost: postDate,
+          url: postUrl,
         });
       }
     });
