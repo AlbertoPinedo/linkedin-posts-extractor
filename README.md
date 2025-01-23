@@ -30,7 +30,7 @@ The extracted data includes the following fields:
 - `reactions`: The number of reactions to the post.
 - `comments`: The number of comments on the post.
 - `impressions`: The number of impressions (views) on the post.
-I have added:
+Added in this forked version:
 - `images`: The images included in each post
 - `datePost`: Date of the post
 - `url`: Url of each post
